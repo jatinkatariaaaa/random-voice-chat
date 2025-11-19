@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import io from 'socket.io-client';
 import SimplePeer from 'simple-peer';
-import { Mic, MicOff, SkipForward, Phone, Loader2 } from 'lucide-react';
+import { Mic, MicOff, SkipForward, Phone, Loader2, MessageSquare, Send, X } from 'lucide-react';
 
 // Initialize socket connection
 // In production, we use the environment variable. In dev, we fallback to localhost.
@@ -13,9 +13,15 @@ function App() {
     const [isMuted, setIsMuted] = useState(false);
     const [partnerId, setPartnerId] = useState(null);
 
+    // Chat State
+    const [showChat, setShowChat] = useState(false);
+    const [messages, setMessages] = useState([]);
+    const [newMessage, setNewMessage] = useState('');
+
     const localStreamRef = useRef(null);
     const peerRef = useRef(null);
     const audioRef = useRef(null); // For remote audio
+    const chatEndRef = useRef(null);
 
     useEffect(() => {
         // Socket event listeners
@@ -30,11 +36,18 @@ function App() {
         };
     }, []);
 
+    // Auto-scroll to bottom of chat
+    useEffect(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages, showChat]);
+
     const startCall = async () => {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
             localStreamRef.current = stream;
             setGameState('searching');
+            setMessages([]); // Clear chat on new call
+            setShowChat(false);
             socket.emit('find_partner');
         } catch (err) {
             console.error("Error accessing microphone:", err);
@@ -69,6 +82,13 @@ function App() {
             }
         });
 
+        // Handle incoming data (chat messages)
+        peer.on('data', (data) => {
+            const text = new TextDecoder("utf-8").decode(data);
+            setMessages(prev => [...prev, { text, sender: 'partner' }]);
+            if (!showChat) setShowChat(true); // Auto-open chat on message
+        });
+
         peer.on('close', () => {
             handlePeerDisconnect();
         });
@@ -92,20 +112,10 @@ function App() {
             peerRef.current.destroy();
             peerRef.current = null;
         }
-        // If we were connected, go back to searching or home?
-        // Requirement says "Skip" logic emits find_partner again.
-        // If partner disconnects, we probably want to find a new one automatically or go to home.
-        // Let's go to searching to find a new one automatically for a fluid experience, 
-        // or back to home if we want to be safe. Let's go to searching.
-
-        // However, if *we* clicked skip, we handle that in handleSkip.
-        // This is for when the *other* person disconnects or error.
-
-        // Check if we are still in 'connected' state to avoid loops if we already skipped
         setGameState((prev) => {
             if (prev === 'connected') {
-                // Auto-search again
                 socket.emit('find_partner');
+                setMessages([]);
                 return 'searching';
             }
             return prev;
@@ -118,6 +128,7 @@ function App() {
             peerRef.current = null;
         }
         setGameState('searching');
+        setMessages([]);
         socket.emit('find_partner');
     };
 
@@ -140,29 +151,46 @@ function App() {
             localStreamRef.current.getTracks().forEach(track => track.stop());
             localStreamRef.current = null;
         }
-        // Disconnect socket to remove from queue if needed, or just emit a leave event
-        // For now, just reloading page or resetting state is enough.
-        // We need to tell server we are done if we were in queue.
-        // But socket.emit('disconnect') is reserved. 
-        // We can just reload window for full cleanup or reset state.
         window.location.reload();
     };
 
+    const sendMessage = (e) => {
+        e.preventDefault();
+        if (!newMessage.trim() || !peerRef.current) return;
+
+        // Send message via WebRTC data channel
+        peerRef.current.send(newMessage);
+
+        // Add to local chat
+        setMessages(prev => [...prev, { text: newMessage, sender: 'me' }]);
+        setNewMessage('');
+    };
+
     return (
-        <div className="min-h-screen bg-background flex items-center justify-center p-4 font-sans">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 font-sans relative overflow-hidden">
             {/* Hidden Audio Element for Remote Stream */}
             <audio ref={audioRef} autoPlay />
 
-            <div className="w-full max-w-md bg-surface rounded-3xl shadow-2xl overflow-hidden border border-slate-700">
+            <div className="w-full max-w-md bg-surface rounded-3xl shadow-2xl overflow-hidden border border-slate-700 relative z-10">
 
                 {/* Header */}
                 <div className="p-6 bg-slate-900/50 border-b border-slate-700 flex justify-between items-center">
                     <h1 className="text-xl font-bold text-white tracking-wide">AirTalk<span className="text-primary">.clone</span></h1>
-                    <div className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+                    <div className="flex items-center gap-3">
+                        {gameState === 'connected' && (
+                            <button
+                                onClick={() => setShowChat(!showChat)}
+                                className={`p-2 rounded-full transition-colors ${showChat ? 'bg-primary text-white' : 'bg-slate-800 text-slate-400 hover:text-white'}`}
+                            >
+                                <MessageSquare className="w-5 h-5" />
+                            </button>
+                        )}
+                        <div className="w-3 h-3 rounded-full bg-green-500 shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+                    </div>
                 </div>
 
                 {/* Main Content */}
-                <div className="p-8 flex flex-col items-center justify-center min-h-[400px]">
+                <div className="p-8 flex flex-col items-center justify-center min-h-[400px] relative">
 
                     {gameState === 'home' && (
                         <div className="text-center space-y-8 animate-in fade-in zoom-in duration-300">
@@ -257,6 +285,54 @@ function App() {
                     )}
 
                 </div>
+
+                {/* Chat Overlay */}
+                {showChat && gameState === 'connected' && (
+                    <div className="absolute inset-0 bg-surface z-20 flex flex-col animate-in slide-in-from-bottom duration-300">
+                        <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
+                            <h3 className="font-bold text-white">Chat</h3>
+                            <button onClick={() => setShowChat(false)} className="text-slate-400 hover:text-white">
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                            {messages.length === 0 && (
+                                <div className="text-center text-slate-500 mt-10 text-sm">
+                                    Say hello! 👋
+                                </div>
+                            )}
+                            {messages.map((msg, idx) => (
+                                <div key={idx} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+                                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.sender === 'me'
+                                            ? 'bg-primary text-white rounded-tr-none'
+                                            : 'bg-slate-700 text-white rounded-tl-none'
+                                        }`}>
+                                        {msg.text}
+                                    </div>
+                                </div>
+                            ))}
+                            <div ref={chatEndRef} />
+                        </div>
+
+                        <form onSubmit={sendMessage} className="p-4 border-t border-slate-700 bg-slate-900/50 flex gap-2">
+                            <input
+                                type="text"
+                                value={newMessage}
+                                onChange={(e) => setNewMessage(e.target.value)}
+                                placeholder="Type a message..."
+                                className="flex-1 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-white focus:outline-none focus:border-primary text-sm"
+                            />
+                            <button
+                                type="submit"
+                                disabled={!newMessage.trim()}
+                                className="p-2 bg-primary rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                            >
+                                <Send className="w-5 h-5" />
+                            </button>
+                        </form>
+                    </div>
+                )}
             </div>
         </div>
     );

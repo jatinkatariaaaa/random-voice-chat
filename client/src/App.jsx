@@ -51,6 +51,12 @@ function App() {
             initiator: initiator,
             trickle: false,
             stream: localStreamRef.current,
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' }
+                ]
+            }
         });
 
         peer.on('signal', (data) => {

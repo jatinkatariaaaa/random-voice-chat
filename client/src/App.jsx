@@ -18,6 +18,47 @@ function App() {
     const [messages, setMessages] = useState([]);
     const [newMessage, setNewMessage] = useState('');
 
+    const [iceServers, setIceServers] = useState([
+        {
+            urls: "stun:stun.relay.metered.ca:80",
+        },
+        {
+            urls: "turn:standard.relay.metered.ca:80",
+            username: "5afd2e99793b56de788d0147",
+            credential: "BlF5lX6g8Q57sRxB",
+        },
+        {
+            urls: "turn:standard.relay.metered.ca:80?transport=tcp",
+            username: "5afd2e99793b56de788d0147",
+            credential: "BlF5lX6g8Q57sRxB",
+        },
+        {
+            urls: "turn:standard.relay.metered.ca:443",
+            username: "5afd2e99793b56de788d0147",
+            credential: "BlF5lX6g8Q57sRxB",
+        },
+        {
+            urls: "turns:standard.relay.metered.ca:443?transport=tcp",
+            username: "5afd2e99793b56de788d0147",
+            credential: "BlF5lX6g8Q57sRxB",
+        },
+    ]);
+
+    // Fetch TURN credentials on mount
+    useEffect(() => {
+        const fetchIceServers = async () => {
+            try {
+                const response = await fetch("https://airtalk.metered.live/api/v1/turn/credentials?apiKey=065dd07c06b321243e8de757bb95bcdc3317");
+                const servers = await response.json();
+                console.log("Fetched ICE Servers:", servers);
+                setIceServers(servers);
+            } catch (error) {
+                console.error("Error fetching ICE servers:", error);
+            }
+        };
+        fetchIceServers();
+    }, []);
+
     const localStreamRef = useRef(null);
     const peerRef = useRef(null);
     const audioRef = useRef(null); // For remote audio
@@ -34,7 +75,7 @@ function App() {
             socket.off('signal', handleSignal);
             socket.off('connect');
         };
-    }, []);
+    }, [iceServers]); // Re-bind if iceServers changes (though handlePartnerFound uses the state directly)
 
     // Auto-scroll to bottom of chat
     useEffect(() => {
@@ -66,28 +107,7 @@ function App() {
             stream: localStreamRef.current,
             config: {
                 iceTransportPolicy: 'relay', // FORCE TURN usage
-                iceServers: [
-                    {
-                        urls: "turn:global.relay.metered.ca:443",
-                        username: "74290b1e61de1f540cf7f72d",
-                        credential: "vWS+roBnHZuLR02v",
-                    },
-                    {
-                        urls: "turn:global.relay.metered.ca:443?transport=tcp",
-                        username: "74290b1e61de1f540cf7f72d",
-                        credential: "vWS+roBnHZuLR02v",
-                    },
-                    {
-                        urls: "turn:global.relay.metered.ca:80",
-                        username: "74290b1e61de1f540cf7f72d",
-                        credential: "vWS+roBnHZuLR02v",
-                    },
-                    {
-                        urls: "turn:global.relay.metered.ca:80?transport=tcp",
-                        username: "74290b1e61de1f540cf7f72d",
-                        credential: "vWS+roBnHZuLR02v",
-                    },
-                ]
+                iceServers: iceServers // Use dynamically fetched servers
             }
         });
 

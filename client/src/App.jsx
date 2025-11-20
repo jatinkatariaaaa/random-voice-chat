@@ -65,8 +65,8 @@ function App() {
             trickle: true,
             stream: localStreamRef.current,
             config: {
+                iceTransportPolicy: 'relay', // FORCE TURN usage
                 iceServers: [
-                    // FORCE TURN: Removed STUN to ensure traffic goes through relay
                     {
                         urls: "turn:global.relay.metered.ca:443",
                         username: "74290b1e61de1f540cf7f72d",
@@ -92,6 +92,9 @@ function App() {
         });
 
         peer.on('signal', (data) => {
+            if (data.type === 'candidate') {
+                console.log('ICE Candidate:', data.candidate);
+            }
             socket.emit('signal', { to: partnerId, signal: data });
         });
 

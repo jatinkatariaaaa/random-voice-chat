@@ -66,8 +66,27 @@ function App() {
             stream: localStreamRef.current,
             config: {
                 iceServers: [
-                    { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:global.stun.twilio.com:3478' }
+                    { urls: "stun:stun.relay.metered.ca:80" },
+                    {
+                        urls: "turn:global.relay.metered.ca:80",
+                        username: "74290b1e61de1f540cf7f72d",
+                        credential: "vWS+roBnHZuLR02v",
+                    },
+                    {
+                        urls: "turn:global.relay.metered.ca:80?transport=tcp",
+                        username: "74290b1e61de1f540cf7f72d",
+                        credential: "vWS+roBnHZuLR02v",
+                    },
+                    {
+                        urls: "turn:global.relay.metered.ca:443",
+                        username: "74290b1e61de1f540cf7f72d",
+                        credential: "vWS+roBnHZuLR02v",
+                    },
+                    {
+                        urls: "turns:global.relay.metered.ca:443?transport=tcp",
+                        username: "74290b1e61de1f540cf7f72d",
+                        credential: "vWS+roBnHZuLR02v",
+                    },
                 ]
             }
         });
@@ -305,8 +324,8 @@ function App() {
                             {messages.map((msg, idx) => (
                                 <div key={idx} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
                                     <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.sender === 'me'
-                                            ? 'bg-primary text-white rounded-tr-none'
-                                            : 'bg-slate-700 text-white rounded-tl-none'
+                                        ? 'bg-primary text-white rounded-tr-none'
+                                        : 'bg-slate-700 text-white rounded-tl-none'
                                         }`}>
                                         {msg.text}
                                     </div>

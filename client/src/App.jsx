@@ -238,6 +238,20 @@ function App() {
                                 Start Call
                             </button>
                         </div>
+                    {gameState === 'connecting' && (
+                        <div className="text-center space-y-8 animate-in fade-in duration-300">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-green-500/20 blur-3xl rounded-full"></div>
+                                <div className="w-32 h-32 bg-slate-700 rounded-full flex items-center justify-center mx-auto relative z-10 border-4 border-green-500/50 animate-pulse">
+                                    <Loader2 className="w-12 h-12 text-green-500 animate-spin" />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <h2 className="text-2xl font-bold text-white">Connecting...</h2>
+                                <p className="text-slate-400">Establishing secure connection.</p>
+                            </div>
+                        </div>
                     )}
 
                     {gameState === 'searching' && (

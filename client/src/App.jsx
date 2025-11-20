@@ -58,7 +58,7 @@ function App() {
     const handlePartnerFound = ({ partnerId, initiator }) => {
         console.log('Partner found:', partnerId, 'Initiator:', initiator);
         setPartnerId(partnerId);
-        setGameState('connected');
+        setGameState('connecting'); // Wait for actual connection
 
         const peer = new SimplePeer({
             initiator: initiator,
@@ -66,7 +66,7 @@ function App() {
             stream: localStreamRef.current,
             config: {
                 iceServers: [
-                    { urls: "stun:stun.relay.metered.ca:80" },
+                    // FORCE TURN: Removed STUN to ensure traffic goes through relay
                     {
                         urls: "turn:global.relay.metered.ca:443",
                         username: "74290b1e61de1f540cf7f72d",
@@ -93,6 +93,11 @@ function App() {
 
         peer.on('signal', (data) => {
             socket.emit('signal', { to: partnerId, signal: data });
+        });
+
+        peer.on('connect', () => {
+            console.log('P2P Connection Established');
+            setGameState('connected');
         });
 
         peer.on('stream', (remoteStream) => {
@@ -238,32 +243,6 @@ function App() {
                     {gameState === 'searching' && (
                         <div className="text-center space-y-8 animate-in fade-in duration-300">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-accent/20 blur-3xl rounded-full"></div>
-                                <div className="w-32 h-32 bg-slate-700 rounded-full flex items-center justify-center mx-auto relative z-10 border-4 border-accent/50 animate-pulse">
-                                    <Loader2 className="w-12 h-12 text-accent animate-spin" />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <h2 className="text-2xl font-bold text-white">Searching...</h2>
-                                <p className="text-slate-400">Finding a partner for you.</p>
-                            </div>
-
-                            <button
-                                onClick={endCall}
-                                className="px-6 py-2 text-slate-400 hover:text-white transition-colors"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    )}
-
-                    {gameState === 'connected' && (
-                        <div className="w-full space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-
-                            {/* Avatar Area */}
-                            <div className="relative py-4">
-                                <div className="absolute inset-0 bg-green-500/10 blur-3xl rounded-full"></div>
                                 <div className="w-40 h-40 bg-gradient-to-br from-slate-700 to-slate-800 rounded-full flex items-center justify-center mx-auto relative z-10 border-4 border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
                                     <span className="text-4xl">👻</span>
                                 </div>

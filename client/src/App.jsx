@@ -62,7 +62,7 @@ function App() {
 
         const peer = new SimplePeer({
             initiator: initiator,
-            trickle: false,
+            trickle: true,
             stream: localStreamRef.current,
             config: {
                 iceServers: [

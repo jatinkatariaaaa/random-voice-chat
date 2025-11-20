@@ -243,113 +243,91 @@ function App() {
                     {gameState === 'connecting' && (
                         <div className="text-center space-y-8 animate-in fade-in duration-300">
                             <div className="relative">
-                                <div className="absolute inset-0 bg-green-500/20 blur-3xl rounded-full"></div>
-                                <div className="w-32 h-32 bg-slate-700 rounded-full flex items-center justify-center mx-auto relative z-10 border-4 border-green-500/50 animate-pulse">
-                                    <Loader2 className="w-12 h-12 text-green-500 animate-spin" />
+                                <div className="text-center">
+                                    <h2 className="text-2xl font-bold text-white">Connected</h2>
+                                    <p className="text-green-400 text-sm font-medium tracking-wider uppercase">Live Audio</p>
                                 </div>
-                            </div>
 
-                            <div className="space-y-2">
-                                <h2 className="text-2xl font-bold text-white">Connecting...</h2>
-                                <p className="text-slate-400">Establishing secure connection.</p>
-                            </div>
-                        </div>
-                    )}
+                                {/* Controls */}
+                                <div className="grid grid-cols-2 gap-4 mt-8">
+                                    <button
+                                        onClick={toggleMute}
+                                        className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
+                                    >
+                                        {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
+                                        <span className="text-xs font-bold uppercase">{isMuted ? 'Unmute' : 'Mute'}</span>
+                                    </button>
 
-                    {gameState === 'searching' && (
-                        <div className="text-center space-y-8 animate-in fade-in duration-300">
-                            <div className="relative">
-                                <div className="w-40 h-40 bg-gradient-to-br from-slate-700 to-slate-800 rounded-full flex items-center justify-center mx-auto relative z-10 border-4 border-green-500 shadow-[0_0_20px_rgba(34,197,94,0.3)]">
-                                    <span className="text-4xl">👻</span>
+                                    <button
+                                        onClick={handleSkip}
+                                        className="p-4 rounded-2xl bg-slate-700 hover:bg-slate-600 text-white flex flex-col items-center justify-center gap-2 transition-all active:scale-95"
+                                    >
+                                        <SkipForward className="w-6 h-6" />
+                                        <span className="text-xs font-bold uppercase">Next</span>
+                                    </button>
                                 </div>
-                                <div className="absolute bottom-4 right-1/2 translate-x-14 w-4 h-4 bg-green-500 border-2 border-surface rounded-full"></div>
-                            </div>
-
-                            <div className="text-center">
-                                <h2 className="text-2xl font-bold text-white">Connected</h2>
-                                <p className="text-green-400 text-sm font-medium tracking-wider uppercase">Live Audio</p>
-                            </div>
-
-                            {/* Controls */}
-                            <div className="grid grid-cols-2 gap-4 mt-8">
-                                <button
-                                    onClick={toggleMute}
-                                    className={`p-4 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all ${isMuted ? 'bg-red-500/20 text-red-400 hover:bg-red-500/30' : 'bg-slate-700 hover:bg-slate-600 text-white'}`}
-                                >
-                                    {isMuted ? <MicOff className="w-6 h-6" /> : <Mic className="w-6 h-6" />}
-                                    <span className="text-xs font-bold uppercase">{isMuted ? 'Unmute' : 'Mute'}</span>
-                                </button>
 
                                 <button
-                                    onClick={handleSkip}
-                                    className="p-4 rounded-2xl bg-slate-700 hover:bg-slate-600 text-white flex flex-col items-center justify-center gap-2 transition-all active:scale-95"
+                                    onClick={endCall}
+                                    className="w-full py-3 text-slate-500 hover:text-red-400 transition-colors text-sm"
                                 >
-                                    <SkipForward className="w-6 h-6" />
-                                    <span className="text-xs font-bold uppercase">Next</span>
+                                    Stop Call
                                 </button>
                             </div>
-
-                            <button
-                                onClick={endCall}
-                                className="w-full py-3 text-slate-500 hover:text-red-400 transition-colors text-sm"
-                            >
-                                Stop Call
-                            </button>
-                        </div>
                     )}
 
-                </div>
+                        </div>
 
                 {/* Chat Overlay */}
-                {showChat && gameState === 'connected' && (
-                    <div className="absolute inset-0 bg-surface z-20 flex flex-col animate-in slide-in-from-bottom duration-300">
-                        <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
-                            <h3 className="font-bold text-white">Chat</h3>
-                            <button onClick={() => setShowChat(false)} className="text-slate-400 hover:text-white">
-                                <X className="w-6 h-6" />
-                            </button>
-                        </div>
+                    {showChat && gameState === 'connected' && (
+                        <div className="absolute inset-0 bg-surface z-20 flex flex-col animate-in slide-in-from-bottom duration-300">
+                            <div className="p-4 border-b border-slate-700 flex justify-between items-center bg-slate-900/50">
+                                <h3 className="font-bold text-white">Chat</h3>
+                                <button onClick={() => setShowChat(false)} className="text-slate-400 hover:text-white">
+                                    <X className="w-6 h-6" />
+                                </button>
+                            </div>
 
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                            {messages.length === 0 && (
-                                <div className="text-center text-slate-500 mt-10 text-sm">
-                                    Say hello! 👋
-                                </div>
-                            )}
-                            {messages.map((msg, idx) => (
-                                <div key={idx} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
-                                    <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.sender === 'me'
-                                        ? 'bg-primary text-white rounded-tr-none'
-                                        : 'bg-slate-700 text-white rounded-tl-none'
-                                        }`}>
-                                        {msg.text}
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                                {messages.length === 0 && (
+                                    <div className="text-center text-slate-500 mt-10 text-sm">
+                                        Say hello! 👋
                                     </div>
-                                </div>
-                            ))}
-                            <div ref={chatEndRef} />
-                        </div>
+                                )}
+                                {messages.map((msg, idx) => (
+                                    <div key={idx} className={`flex ${msg.sender === 'me' ? 'justify-end' : 'justify-start'}`}>
+                                        <div className={`max-w-[80%] p-3 rounded-2xl text-sm ${msg.sender === 'me'
+                                            ? 'bg-primary text-white rounded-tr-none'
+                                            : 'bg-slate-700 text-white rounded-tl-none'
+                                            }`}>
+                                            {msg.text}
+                                        </div>
+                                    </div>
+                                ))}
+                                <div ref={chatEndRef} />
+                            </div>
 
-                        <form onSubmit={sendMessage} className="p-4 border-t border-slate-700 bg-slate-900/50 flex gap-2">
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={(e) => setNewMessage(e.target.value)}
-                                placeholder="Type a message..."
-                                className="flex-1 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-white focus:outline-none focus:border-primary text-sm"
-                            />
-                            <button
-                                type="submit"
-                                disabled={!newMessage.trim()}
-                                className="p-2 bg-primary rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
-                            >
-                                <Send className="w-5 h-5" />
-                            </button>
-                        </form>
-                    </div>
-                )}
+                            <form onSubmit={sendMessage} className="p-4 border-t border-slate-700 bg-slate-900/50 flex gap-2">
+                                <input
+                                    type="text"
+                                    value={newMessage}
+                                    onChange={(e) => setNewMessage(e.target.value)}
+                                    placeholder="Type a message..."
+                                    className="flex-1 bg-slate-800 border border-slate-700 rounded-full px-4 py-2 text-white focus:outline-none focus:border-primary text-sm"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={!newMessage.trim()}
+                                    className="p-2 bg-primary rounded-full text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-blue-600 transition-colors"
+                                >
+                                    <Send className="w-5 h-5" />
+                                </button>
+                            </form>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
-    );
+            );
 }
 
-export default App;
+            export default App;

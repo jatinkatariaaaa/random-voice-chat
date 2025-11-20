@@ -238,6 +238,8 @@ function App() {
                                 Start Call
                             </button>
                         </div>
+                    )}
+
                     {gameState === 'connecting' && (
                         <div className="text-center space-y-8 animate-in fade-in duration-300">
                             <div className="relative">

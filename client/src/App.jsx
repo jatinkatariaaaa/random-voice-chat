@@ -68,22 +68,22 @@ function App() {
                 iceServers: [
                     { urls: "stun:stun.relay.metered.ca:80" },
                     {
+                        urls: "turn:global.relay.metered.ca:443",
+                        username: "74290b1e61de1f540cf7f72d",
+                        credential: "vWS+roBnHZuLR02v",
+                    },
+                    {
+                        urls: "turn:global.relay.metered.ca:443?transport=tcp",
+                        username: "74290b1e61de1f540cf7f72d",
+                        credential: "vWS+roBnHZuLR02v",
+                    },
+                    {
                         urls: "turn:global.relay.metered.ca:80",
                         username: "74290b1e61de1f540cf7f72d",
                         credential: "vWS+roBnHZuLR02v",
                     },
                     {
                         urls: "turn:global.relay.metered.ca:80?transport=tcp",
-                        username: "74290b1e61de1f540cf7f72d",
-                        credential: "vWS+roBnHZuLR02v",
-                    },
-                    {
-                        urls: "turn:global.relay.metered.ca:443",
-                        username: "74290b1e61de1f540cf7f72d",
-                        credential: "vWS+roBnHZuLR02v",
-                    },
-                    {
-                        urls: "turns:global.relay.metered.ca:443?transport=tcp",
                         username: "74290b1e61de1f540cf7f72d",
                         credential: "vWS+roBnHZuLR02v",
                     },
@@ -188,7 +188,7 @@ function App() {
     return (
         <div className="min-h-screen bg-background flex items-center justify-center p-4 font-sans relative overflow-hidden">
             {/* Hidden Audio Element for Remote Stream */}
-            <audio ref={audioRef} autoPlay />
+            <audio ref={audioRef} autoPlay playsInline controls={false} />
 
             <div className="w-full max-w-md bg-surface rounded-3xl shadow-2xl overflow-hidden border border-slate-700 relative z-10">
 
